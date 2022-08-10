@@ -22,8 +22,8 @@ ch.setFormatter(formatter)
 logger.addHandler(fh)
 logger.addHandler(ch)
 
-heat_pin = 29
-vacuum_pin = 30
+heat_pin = 36
+vacuum_pin = 38
 
 max_temp_c = 72
 interval = 5

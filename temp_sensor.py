@@ -1,3 +1,5 @@
+from typing import Callable
+
 import smbus
 import time
 import threading
@@ -9,7 +11,7 @@ temperature = 0.0
 humidity = 0.0
 
 refresh_rate = 5
-timer: threading.Timer
+timer = None
 
 
 def check_temp():
@@ -32,12 +34,13 @@ def check_temp():
 
 def start():
     global timer
-    if not timer.isAlive():
+    if timer is None:
         timer = threading.Timer(0.1, check_temp)
         timer.start()
 
 
 def stop():
     global timer
-    if timer.isAlive():
+    if timer is not None:
         timer.cancel()
+        timer = None
