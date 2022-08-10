@@ -1,3 +1,5 @@
+from typing import Callable
+
 import firebase_admin
 from firebase_admin import db
 from firebase_admin.exceptions import FirebaseError
@@ -5,13 +7,13 @@ import logging
 
 """
 {
-    "running": none, 
+    "running": "none", 
     "status": {
         "temp": 40.1, 
         "humidity": 40,
         "pumpOn": false, 
         "lampOn": false, 
-        "program": none, 
+        "program": "none", 
         "step": 0, 
         "stepCnt": 0
     }, 
@@ -33,16 +35,6 @@ import logging
             }
         }
     }
-    "history": {
-        "xxxx": {
-            "temp": 40.1, 
-            "humidity": 40, 
-            "pumpOn": true, 
-            "lampOn": true, 
-            "setTemp": 40.5, 
-            "time": "2022-08-08 12:35:25"
-        }
-    }
 }
 """
 
@@ -59,11 +51,13 @@ default_app = firebase_admin.initialize_app(cred_obj, {
 ref = db.reference(appKey)
 status_ref = ref.child("status")
 programs_ref = ref.child("programs")
+running_ref = ref.child("running")
 
 status = status_ref.get()
 programs = programs_ref.get()
+running: str
 
-callback = None
+callback: Callable
 
 
 def save_status():
@@ -118,6 +112,25 @@ def start_programs_listener():
     except FirebaseError:
         module_logger.error('failed to start listener... trying again.')
         start_programs_listener()
+
+
+def running_listener(event):
+    global running
+    module_logger.debug('running firebase listener...')
+    if event.data:
+        running = running_ref.get()
+        if callback is not None:
+            callback(running)
+        module_logger.debug("RUNNING: " + str(running_ref.get()))
+
+
+def start_running_listener():
+    try:
+        module_logger.debug("Starting Running Listener")
+        running_ref.listen(running_listener)
+    except FirebaseError:
+        module_logger.error('failed to start listener... trying again.')
+        start_running_listener()
 
 
 def get_programs():
