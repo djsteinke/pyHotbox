@@ -4,6 +4,7 @@ from firebase_admin.exceptions import FirebaseError
 import logging
 from time import sleep
 import os
+import threading
 
 """
 {
@@ -108,13 +109,17 @@ def programs_listener(event):
 
 
 def start_programs_listener():
-    try:
-        module_logger.debug("Starting Programs Listener")
-        programs_ref.listen(programs_listener)
-    except FirebaseError:
-        module_logger.error('failed to start listener... trying again.')
-        sleep(5)
-        start_programs_listener()
+    listening = False
+    while not listening:
+        try:
+            module_logger.debug("Starting Programs Listener")
+            programs_ref.listen(programs_listener)
+            listening = True
+        except FirebaseError as e:
+            module_logger.error('failed to start listener... trying again.')
+            module_logger.error(str(e))
+            sleep(5)
+            start_programs_listener()
 
 
 def running_listener(event):
@@ -128,16 +133,22 @@ def running_listener(event):
 
 
 def start_running_listener():
-    try:
-        module_logger.debug("Starting Running Listener")
-        running_ref.listen(running_listener)
-    except FirebaseError:
-        module_logger.error('failed to start listener... trying again.')
-        sleep(5)
-        start_running_listener()
+    listening = False
+    while not listening:
+        try:
+            module_logger.debug("Starting Running Listener")
+            running_ref.listen(running_listener)
+            listening = True
+        except FirebaseError as e:
+            module_logger.error('failed to start listener... trying again.')
+            module_logger.error(str(e))
+            sleep(5)
 
 
 def get_programs():
     return programs
 
 
+def start():
+    start_programs_listener()
+    start_running_listener()
