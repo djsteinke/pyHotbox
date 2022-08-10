@@ -117,7 +117,7 @@ def start_programs_listener():
             listening = True
         except FirebaseError as e:
             module_logger.error('failed to start listener... trying again.')
-            module_logger.error(str(e))
+            module_logger.error('FirebaseError: ' + str(e))
             sleep(5)
             start_programs_listener()
 
@@ -141,7 +141,7 @@ def start_running_listener():
             listening = True
         except FirebaseError as e:
             module_logger.error('failed to start listener... trying again.')
-            module_logger.error(str(e))
+            module_logger.error('FirebaseError: ' + str(e))
             sleep(5)
 
 
