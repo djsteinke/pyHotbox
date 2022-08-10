@@ -1,5 +1,3 @@
-from typing import Callable
-
 import smbus
 import time
 import threading
