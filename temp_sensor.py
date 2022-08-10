@@ -1,6 +1,7 @@
 import smbus
 import time
 import threading
+import logging
 
 bus = smbus.SMBus(1)
 config = [0x08, 0x00]
@@ -10,6 +11,8 @@ humidity = 0.0
 
 refresh_rate = 5
 timer = None
+
+module_logger = logging.getLogger('main.temp_sensor')
 
 
 def check_temp():
@@ -32,13 +35,17 @@ def check_temp():
 
 def start():
     global timer
+    module_logger.debug("start()")
     if timer is None:
+        module_logger.debug("was not running... starting")
         timer = threading.Timer(0.1, check_temp)
         timer.start()
 
 
 def stop():
     global timer
+    module_logger.debug("stop()")
     if timer is not None:
+        module_logger.debug("was running... stopping")
         timer.cancel()
         timer = None

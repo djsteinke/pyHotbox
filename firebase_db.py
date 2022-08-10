@@ -1,9 +1,9 @@
 from typing import Callable
-
-import firebase_admin
-from firebase_admin import db
+from firebase_admin import db, credentials, initialize_app
 from firebase_admin.exceptions import FirebaseError
 import logging
+from time import sleep
+import os
 
 """
 {
@@ -43,8 +43,10 @@ module_logger = logging.getLogger('main.firebase_db')
 databaseURL = "https://rn5notifications-default-rtdb.firebaseio.com/"
 appKey = "hotbox"
 
-cred_obj = firebase_admin.credentials.Certificate("/home/pi/firebaseKey.json")
-default_app = firebase_admin.initialize_app(cred_obj, {
+p_dir = os.path.dirname(os.getcwd())
+cred_obj = credentials.Certificate(p_dir + "/firebaseKey.json")
+
+initialize_app(cred_obj, {
     'databaseURL': databaseURL
 })
 
@@ -111,6 +113,7 @@ def start_programs_listener():
         programs_ref.listen(programs_listener)
     except FirebaseError:
         module_logger.error('failed to start listener... trying again.')
+        sleep(5)
         start_programs_listener()
 
 
@@ -130,6 +133,7 @@ def start_running_listener():
         running_ref.listen(running_listener)
     except FirebaseError:
         module_logger.error('failed to start listener... trying again.')
+        sleep(5)
         start_running_listener()
 
 
