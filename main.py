@@ -104,6 +104,7 @@ def end_program():
     firebase_db.pump_on(pump_relay.is_on)
     firebase_db.lamp_on(lamp_relay.is_on)
     firebase_db.save_status()
+    firebase_db.set_running("none")
     logger.info(f"Program Ended")
 
 

@@ -120,6 +120,13 @@ def start_programs_listener():
         start_programs_listener()
 
 
+def set_running(val):
+    global running
+    if running != val:
+        running_ref.set(val)
+        running = val
+
+
 def running_listener(event):
     global running
     module_logger.debug('running firebase listener...')
