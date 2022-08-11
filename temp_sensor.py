@@ -11,12 +11,7 @@ humidity = 0.0
 
 refresh_rate = 5
 
-
-def empty():
-    tmp = 1
-
-
-timer = threading.Timer(1, empty)
+timer = None
 
 module_logger = logging.getLogger('main.temp_sensor')
 
@@ -35,6 +30,8 @@ def check_temp():
     humid = humid_raw * 100 / 1048576
     temperature = round(temp_c, 1)
     humidity = round(humid, 1)
+    module_logger.debug('temperature: ' + temperature)
+    module_logger.debug('humidity: ' + humidity)
     timer = threading.Timer(refresh_rate, check_temp)
     timer.start()
 
@@ -51,6 +48,6 @@ def start():
 def stop():
     global timer
     module_logger.debug("stop()")
-    if not timer.is_alive:
+    if timer is not None:
         module_logger.debug("was running... stopping")
         timer.cancel()
