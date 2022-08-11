@@ -168,6 +168,6 @@ def trigger_action(action):
 if __name__ == '__main__':
     temp_sensor.start()
     firebase_db.callback = trigger_action
-    firebase_db.start()
+    threading.Timer(0.1, firebase_db.start).start()
     threading.Timer(0.1, record).start()
 
