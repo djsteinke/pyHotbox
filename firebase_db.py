@@ -61,7 +61,7 @@ status = status_ref.get()
 programs = programs_ref.get()
 running = "none"
 
-callback: Callable
+callback = None
 
 
 def save_status():
