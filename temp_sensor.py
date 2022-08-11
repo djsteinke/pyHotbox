@@ -30,8 +30,8 @@ def check_temp():
     humid = humid_raw * 100 / 1048576
     temperature = round(temp_c, 1)
     humidity = round(humid, 1)
-    module_logger.debug('temperature: ' + temperature)
-    module_logger.debug('humidity: ' + humidity)
+    module_logger.debug('temperature: ' + str(temperature))
+    module_logger.debug('humidity: ' + str(humidity))
     timer = threading.Timer(refresh_rate, check_temp)
     timer.start()
 
