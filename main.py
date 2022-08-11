@@ -125,7 +125,7 @@ def run_step():
 
 def hold_step():
     global lamp_on_temp, lamp_on_time, hold_timer
-    t = temp_sensor.temperature
+    t = [temp_sensor.temperature, temp_sensor.humidity]
     if lamp_relay.is_on:
         if lamp_on_temp == 0:
             lamp_on_temp = t[0]
