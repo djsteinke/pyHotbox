@@ -142,7 +142,7 @@ def hold_step():
     if step["setTemp"] > 0:
         t_h = step["setTemp"] + 1.0
         t_l = step["setTemp"] - 1.0
-        temp = temp_sensor.temperature()
+        temp = temp_sensor.temperature
         if temp > max_temp_c:
             lamp_relay.force_off()
         else:
