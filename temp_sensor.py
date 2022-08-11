@@ -10,7 +10,13 @@ temperature = 0.0
 humidity = 0.0
 
 refresh_rate = 5
-timer = threading.Timer(1, None)
+
+
+def empty():
+    tmp = 1
+
+
+timer = threading.Timer(1, empty)
 
 module_logger = logging.getLogger('main.temp_sensor')
 

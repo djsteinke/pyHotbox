@@ -27,11 +27,16 @@ vacuum_pin = 38
 max_temp_c = 72
 interval = 5
 
+
+def empty():
+    tmp = 1
+
+
 program = {}
 step = {}
-hold_timer = threading.Timer(1, None)
-step_timer = threading.Timer(1, None)
-record_timer = threading.Timer(1, None)
+hold_timer = threading.Timer(1, empty)
+step_timer = threading.Timer(1, empty)
+record_timer = threading.Timer(1, empty)
 
 lamp_on_time = 0
 lamp_on_temp = 0
@@ -42,6 +47,8 @@ lamp_relay = Relay(heat_pin)
 pump_relay = Relay(vacuum_pin)
 callback = None
 last_temp = 0.0
+
+
 
 
 def record():
