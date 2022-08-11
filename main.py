@@ -101,6 +101,8 @@ def end_program():
     firebase_db.status['step'] = -1
     firebase_db.status['program'] = "none"
     firebase_db.status['stepCnt'] = 0
+    firebase_db.pump_on(pump_relay.is_on)
+    firebase_db.lamp_on(lamp_relay.is_on)
     firebase_db.save_status()
     logger.info(f"Program Ended")
 
