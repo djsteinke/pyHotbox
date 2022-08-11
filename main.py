@@ -1,5 +1,5 @@
 import logging
-#import temp_sensor
+import temp_sensor
 import threading
 import time
 import firebase_db
@@ -167,11 +167,11 @@ def trigger_action(action):
 if __name__ == '__main__':
     logger.debug("Start Application")
     logger.debug("Start temp_sensor")
-    #temp_sensor.start()
+    temp_sensor.start()
     logger.debug("callback")
-    #firebase_db.callback = trigger_action
+    firebase_db.callback = trigger_action
     logger.debug("Start firebase")
-    #threading.Timer(0.1, firebase_db.start).start()
+    threading.Timer(0.1, firebase_db.start).start()
     logger.debug("Start recording")
-    #threading.Timer(0.1, record).start()
+    threading.Timer(0.1, record).start()
 
