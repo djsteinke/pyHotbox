@@ -1,5 +1,5 @@
 import logging
-import temp_sensor
+#import temp_sensor
 import threading
 import time
 import firebase_db
@@ -27,16 +27,11 @@ vacuum_pin = 38
 max_temp_c = 72
 interval = 5
 
-
-def empty():
-    tmp = 1
-
-
 program = {}
 step = {}
-hold_timer = threading.Timer(1, empty)
-step_timer = threading.Timer(1, empty)
-record_timer = threading.Timer(1, empty)
+hold_timer = None
+step_timer = None
+record_timer = None
 
 lamp_on_time = 0
 lamp_on_temp = 0
@@ -47,8 +42,6 @@ lamp_relay = Relay(heat_pin)
 pump_relay = Relay(vacuum_pin)
 callback = None
 last_temp = 0.0
-
-
 
 
 def record():
@@ -87,16 +80,16 @@ def run_program(name):
 def start_program():
     global hold_timer, program_start_time
     program_start_time = time.perf_counter()
-    if hold_timer.is_alive:
+    if hold_timer is not None:
         hold_timer.cancel()
     run_step()
 
 
 def end_program():
     global program_start_time, hold_timer, step_timer, program, step
-    if hold_timer.is_alive:
+    if hold_timer is not None:
         hold_timer.cancel()
-    if step_timer.is_alive:
+    if step_timer is not None:
         step_timer.cancel()
     program_start_time = 0
     firebase_db.status['step'] = -1
@@ -118,7 +111,7 @@ def run_step():
         t = value['runTime'] * 60
         step_timer = threading.Timer(t, run_step)
         step_timer.start()
-        if hold_timer.is_alive:
+        if hold_timer is not None:
             hold_timer.cancel()
         hold_step()
         if value['pumpOn']:
