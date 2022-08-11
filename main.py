@@ -67,6 +67,7 @@ def run_program(name):
         firebase_db.status['program'] = name
         step_cnt = len(program['steps'])
         firebase_db.status['stepCnt'] = step_cnt
+        firebase_db.save_status()
         found = True
     if found:
         threading.Timer(0.1, start_program).start()
@@ -97,6 +98,10 @@ def end_program():
     step = {}
     lamp_relay.force_off()
     pump_relay.force_off()
+    firebase_db.status['step'] = -1
+    firebase_db.status['program'] = "none"
+    firebase_db.status['stepCnt'] = 0
+    firebase_db.save_status()
     logger.info(f"Program Ended")
 
 
@@ -119,6 +124,7 @@ def run_step():
             if not pump_relay.is_on:
                 pump_relay.on()
         firebase_db.pump_on(pump_relay.is_on)
+        firebase_db.save_status()
     else:
         end_program()
 
