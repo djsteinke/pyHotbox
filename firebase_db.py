@@ -44,8 +44,9 @@ module_logger = logging.getLogger('main.firebase_db')
 databaseURL = "https://rn5notifications-default-rtdb.firebaseio.com/"
 appKey = "hotbox"
 
-p_dir = os.path.dirname(os.getcwd())
-cred_obj = credentials.Certificate(p_dir + "/firebaseKey.json")
+key_dir = os.path.dirname(os.getcwd()) + "/firebaseKey.json"
+# key_dir = "C:\\MyData\\Program Files\\PyCharm\\rn5notificationsKey.json"
+cred_obj = credentials.Certificate(key_dir)
 
 initialize_app(cred_obj, {
     'databaseURL': databaseURL
@@ -58,7 +59,7 @@ running_ref = ref.child("running")
 
 status = status_ref.get()
 programs = programs_ref.get()
-running: str
+running = "none"
 
 callback: Callable
 
@@ -126,10 +127,12 @@ def running_listener(event):
     global running
     module_logger.debug('running firebase listener...')
     if event.data:
-        running = running_ref.get()
-        if callback is not None:
-            callback(running)
-        module_logger.debug("RUNNING: " + str(running_ref.get()))
+        new_running = running_ref.get()
+        if running != new_running:
+            running = new_running
+            if callback is not None:
+                callback(running)
+            module_logger.debug("RUNNING: " + str(running_ref.get()))
 
 
 def start_running_listener():

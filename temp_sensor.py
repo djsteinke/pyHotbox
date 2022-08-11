@@ -1,9 +1,9 @@
-import smbus
+#import smbus
 import time
 import threading
 import logging
 
-bus = smbus.SMBus(1)
+bus = 1#smbus.SMBus(1)
 config = [0x08, 0x00]
 
 temperature = 0.0

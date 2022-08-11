@@ -30,9 +30,9 @@ interval = 5
 
 program = {}
 step = {}
-hold_timer: threading.Timer
-step_timer: threading.Timer
-record_timer: threading.Timer
+hold_timer = threading.Timer(1, None)
+step_timer = threading.Timer(1, None)
+record_timer = threading.Timer(1, None)
 
 lamp_on_time = 0
 lamp_on_temp = 0
@@ -62,15 +62,13 @@ def run_program(name):
     global program
     logger.info(f"run_program({name})")
     found = False
-    for key, value in firebase_db.programs:
-        print(key)
-        if key == name:
-            program = value
-            firebase_db.status['program'] = key
-            step_cnt = len(program['steps'])
-            firebase_db.status['stepCnt'] = step_cnt
-            found = True
-            break
+    if name in firebase_db.programs:
+        print(name)
+        program = firebase_db.programs[name]
+        firebase_db.status['program'] = name
+        step_cnt = len(program['steps'])
+        firebase_db.status['stepCnt'] = step_cnt
+        found = True
     if found:
         threading.Timer(0.1, start_program).start()
         logger.info(f"Program {name} Started")
@@ -83,15 +81,21 @@ def run_program(name):
 def start_program():
     global hold_timer, program_start_time
     program_start_time = time.perf_counter()
-    hold_timer.cancel()
+    if hold_timer.is_alive:
+        hold_timer.cancel()
     run_step()
 
 
 def end_program():
-    global program_start_time, hold_timer, step_timer
+    global program_start_time, hold_timer, step_timer, program, step
+    if hold_timer.is_alive:
+        hold_timer.cancel()
+    if step_timer.is_alive:
+        step_timer.cancel()
     program_start_time = 0
-    hold_timer.cancel()
-    step_timer.cancel()
+    firebase_db.status['step'] = -1
+    program = {}
+    step = {}
     lamp_relay.force_off()
     pump_relay.force_off()
     logger.info(f"Program Ended")
@@ -100,21 +104,22 @@ def end_program():
 def run_step():
     global step_start_time, step_timer, step
     step_start_time = 0.0
+    firebase_db.status['step'] = firebase_db.status['step'] + 1
     if firebase_db.status['step'] < firebase_db.status['stepCnt']:
-        for key, value in program['steps']:
-            if key == firebase_db.status['step']:
-                step = value
-                step_start_time = time.perf_counter()
-                t = value['runTime'] * 60
-                step_timer = threading.Timer(t, run_step)
-                step_timer.start()
-                hold_timer.cancel()
-                hold_step()
-                if value['pumpOn']:
-                    pump_relay.run_time = t
-                    if not pump_relay.is_on:
-                        pump_relay.on()
-                firebase_db.pump_on(pump_relay.is_on)
+        value = program['steps'][firebase_db.status['step']]
+        step = value
+        step_start_time = time.perf_counter()
+        t = value['runTime'] * 60
+        step_timer = threading.Timer(t, run_step)
+        step_timer.start()
+        if hold_timer.is_alive:
+            hold_timer.cancel()
+        hold_step()
+        if value['pumpOn']:
+            pump_relay.run_time = t
+            if not pump_relay.is_on:
+                pump_relay.on()
+        firebase_db.pump_on(pump_relay.is_on)
     else:
         end_program()
 
@@ -138,13 +143,13 @@ def hold_step():
     if step["setTemp"] > 0:
         t_h = step["setTemp"] + 1.0
         t_l = step["setTemp"] - 1.0
-        t = temp_sensor.temperature()
-        if t > max_temp_c:
+        temp = temp_sensor.temperature()
+        if temp > max_temp_c:
             lamp_relay.force_off()
         else:
-            if t > t_h:
+            if temp > t_h:
                 lamp_relay.force_off()
-            elif t < t_l and not lamp_relay.is_on:
+            elif temp < t_l and not lamp_relay.is_on:
                 lamp_relay.on()
         firebase_db.lamp_on(lamp_relay.is_on)
     firebase_db.save_status()
@@ -153,7 +158,8 @@ def hold_step():
 
 
 def trigger_action(action):
-    if action == "stop":
+    if action == "none":
+        logger.debug("program stopped")
         end_program()
     else:
         run_program(action)
