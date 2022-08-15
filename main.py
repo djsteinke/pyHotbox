@@ -62,7 +62,7 @@ def run_program(name):
     logger.info(f"run_program({name})")
     found = False
     for p in firebase_db.programs:
-        if program['name'] == name:
+        if p['name'] == name:
             program = p
             firebase_db.status['program'] = name
             step_cnt = len(program['steps'])
