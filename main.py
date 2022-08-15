@@ -61,14 +61,15 @@ def run_program(name):
     global program
     logger.info(f"run_program({name})")
     found = False
-    if name in firebase_db.programs:
-        print(name)
-        program = firebase_db.programs[name]
-        firebase_db.status['program'] = name
-        step_cnt = len(program['steps'])
-        firebase_db.status['stepCnt'] = step_cnt
-        firebase_db.save_status()
-        found = True
+    for program in firebase_db.programs:
+        if program['name'] == name:
+            program = firebase_db.programs[name]
+            firebase_db.status['program'] = name
+            step_cnt = len(program['steps'])
+            firebase_db.status['stepCnt'] = step_cnt
+            firebase_db.save_status()
+            found = True
+            break
     if found:
         threading.Timer(0.1, start_program).start()
         logger.info(f"Program {name} Started")
@@ -143,9 +144,10 @@ def hold_step():
         lamp_on_time = 0
         lamp_on_temp = 0
     if lamp_on_time >= 300 and t[0] <= lamp_on_temp + 5:
-        temp_change = t[0] - lamp_on_temp
+        temp_change = round(t[0] - lamp_on_temp, 1)
         logger.error(f'EMERGENCY STOP PROGRAM. 5 min temp change {temp_change} deg C.')
         end_program()
+        return
     firebase_db.temperature(t[0])
     firebase_db.humidity(t[1])
     if step["setTemp"] > 0:
