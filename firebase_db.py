@@ -56,6 +56,7 @@ ref = db.reference(appKey)
 status_ref = ref.child("status")
 programs_ref = ref.child("programs")
 running_ref = ref.child("running")
+history_ref = ref.child("history")
 
 status = status_ref.get()
 programs = programs_ref.get()
