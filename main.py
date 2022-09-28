@@ -49,6 +49,10 @@ last_temp = 0.0
 
 def record():
     global record_timer
+    if not running:
+        t = [temp_sensor.temperature, temp_sensor.humidity]
+        firebase_db.get_temperature(t[0])
+        firebase_db.get_humidity(t[1])
     history = {"time": round(datetime.now(timezone.utc).timestamp()),
                "temperature": firebase_db.get_temperature(),
                "humidity": firebase_db.get_humidity(),
