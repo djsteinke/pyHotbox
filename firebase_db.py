@@ -74,8 +74,8 @@ def internet_on():
     while True:
         try:
             request.urlopen("http://google.com")
-            #if not network_up:
-            module_logger.debug('Network UP.')
+            if not network_up:
+                module_logger.debug('Network UP.')
             network_up = True
             return network_up
         except error.URLError as e:
