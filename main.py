@@ -67,6 +67,8 @@ def record():
         firebase_db.add_history(history)
     #else:
     #    record_interval = 15
+    if record_timer is not None:
+        record_timer.cancel()
     record_timer = threading.Timer(record_interval, record)
     record_timer.start()
 
@@ -87,8 +89,7 @@ def run_program(name):
     if found:
         if record_timer is not None:
             record_timer.cancel()
-        record_timer = threading.Timer(15, record)
-        record_timer.start()
+        record()
         threading.Timer(0.1, start_program).start()
         logger.info(f"Program {name} Started")
         # TODO update status
