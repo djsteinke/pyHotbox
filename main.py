@@ -56,7 +56,7 @@ def record():
                "lampOn": False}
     # TODO FbDB push history
     firebase_db.add_history(history)
-    record_interval = 15 if running else 300
+    record_interval = 15 if running else 60
     record_timer = threading.Timer(record_interval, record)
     record_timer.start()
 
