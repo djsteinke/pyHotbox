@@ -100,7 +100,7 @@ def start_program():
     run_step()
     if record_timer is not None:
         record_timer.cancel()
-        record()
+    record()
 
 
 def end_program():
