@@ -55,6 +55,7 @@ def record():
                "pumpOn": False,
                "lampOn": False}
     # TODO FbDB push history
+    firebase_db.add_history(history)
     record_interval = 15 if running else 300
     record_timer = threading.Timer(record_interval, record)
     record_timer.start()
@@ -192,4 +193,5 @@ if __name__ == '__main__':
     threading.Timer(0.1, firebase_db.start_listeners).start()
     logger.debug("Start recording")
     threading.Timer(0.1, record).start()
+
 
