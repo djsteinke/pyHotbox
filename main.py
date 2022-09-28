@@ -58,6 +58,7 @@ def record():
                "humidity": firebase_db.get_humidity(),
                "pumpOn": firebase_db.is_pump_on(),
                "lampOn": firebase_db.is_lamp_on()}
+    logger.debug("record: " + str(history))
     # TODO FbDB push history
     firebase_db.add_history(history)
     record_interval = 15 if running else 300
