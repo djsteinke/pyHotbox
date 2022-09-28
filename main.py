@@ -66,7 +66,7 @@ def record():
 
 
 def run_program(name):
-    global program, running
+    global program
     logger.info(f"run_program({name})")
     found = False
     for p in firebase_db.programs:
