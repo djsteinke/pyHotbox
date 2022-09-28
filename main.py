@@ -90,6 +90,9 @@ def start_program():
     if hold_timer is not None:
         hold_timer.cancel()
     firebase_db.status['startTime'] = round(datetime.now(timezone.utc).timestamp())
+    if record_timer is not None:
+        record_timer.cancel()
+        record()
     run_step()
 
 
