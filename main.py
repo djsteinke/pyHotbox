@@ -87,7 +87,7 @@ def run_program(name):
     if found:
         if record_timer is not None:
             record_timer.cancel()
-        record()
+        record_timer = threading.Timer(15, record)
         threading.Timer(0.1, start_program).start()
         logger.info(f"Program {name} Started")
         # TODO update status
@@ -103,6 +103,7 @@ def start_program():
     if hold_timer is not None:
         hold_timer.cancel()
     firebase_db.status['startTime'] = round(datetime.now(timezone.utc).timestamp())
+    run_step()
 
 
 def end_program():
