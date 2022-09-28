@@ -91,16 +91,16 @@ def run_program(name):
 
 
 def start_program():
-    global hold_timer, program_start_time, running
+    global hold_timer, program_start_time, running, record_timer
     running = True
     program_start_time = time.perf_counter()
     if hold_timer is not None:
         hold_timer.cancel()
     firebase_db.status['startTime'] = round(datetime.now(timezone.utc).timestamp())
-    run_step()
     if record_timer is not None:
         record_timer.cancel()
-    record()
+    record_timer = threading.Timer(15, record)
+    run_step()
 
 
 def end_program():
