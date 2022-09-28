@@ -72,7 +72,7 @@ network_up = True
 
 def add_history(history):
     history_ref.push(history)
-    snapshot = history_ref.order_by_key().limit_to_first(1).get()
+    snapshot = history_ref.order_by_key().limit_to_last(1).get()
     # 4 hrs of history
     history_max = round(datetime.now(timezone.utc).timestamp()) - 3600
     for key, val in snapshot.items():

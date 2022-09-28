@@ -27,7 +27,7 @@ vacuum_pin = 18
 
 max_temp_c = 72
 interval = 5
-status_update_cnt = 3
+status_update_cnt = 0
 
 program = {}
 step = {}
@@ -56,7 +56,7 @@ def record():
                "lampOn": False}
     # TODO FbDB push history
     firebase_db.add_history(history)
-    record_interval = 15 if running else 60
+    record_interval = 15 if running else 300
     record_timer = threading.Timer(record_interval, record)
     record_timer.start()
 
@@ -145,7 +145,7 @@ def run_step():
 
 
 def hold_step():
-    global lamp_on_temp, lamp_on_time, hold_timer
+    global lamp_on_temp, lamp_on_time, hold_timer, status_update_cnt
     t = [temp_sensor.temperature, temp_sensor.humidity]
     if lamp_relay.is_on:
         if lamp_on_temp == 0:
@@ -173,7 +173,10 @@ def hold_step():
             elif temp < t_l and not lamp_relay.is_on:
                 lamp_relay.on()
         firebase_db.lamp_on(lamp_relay.is_on)
-    firebase_db.save_status()
+    status_update_cnt += 1
+    if status_update_cnt >= 3:
+        firebase_db.save_status()
+        status_update_cnt = 0
     hold_timer = threading.Timer(interval, hold_step)
     hold_timer.start()
 
