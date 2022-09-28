@@ -72,7 +72,7 @@ def record():
 
 
 def run_program(name):
-    global program
+    global program, record_timer
     logger.info(f"run_program({name})")
     found = False
     for p in firebase_db.programs:
@@ -85,6 +85,10 @@ def run_program(name):
             found = True
             break
     if found:
+        if record_timer is not None:
+            record_timer.cancel()
+        record_timer = threading.Timer(15, record)
+        run_step()
         threading.Timer(0.1, start_program).start()
         logger.info(f"Program {name} Started")
         # TODO update status
@@ -94,16 +98,12 @@ def run_program(name):
 
 
 def start_program():
-    global hold_timer, program_start_time, running, record_timer
+    global hold_timer, program_start_time, running
     running = True
     program_start_time = time.perf_counter()
     if hold_timer is not None:
         hold_timer.cancel()
     firebase_db.status['startTime'] = round(datetime.now(timezone.utc).timestamp())
-    if record_timer is not None:
-        record_timer.cancel()
-    record_timer = threading.Timer(15, record)
-    run_step()
 
 
 def end_program():
