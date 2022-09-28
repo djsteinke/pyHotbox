@@ -3,6 +3,7 @@ import temp_sensor
 import threading
 import time
 import firebase_db
+from datetime import datetime, timezone
 from relay import Relay
 
 logger = logging.getLogger('main')
@@ -32,6 +33,7 @@ step = {}
 hold_timer = None
 step_timer = None
 record_timer = None
+running = False
 
 lamp_on_time = 0
 lamp_on_temp = 0
@@ -46,19 +48,19 @@ last_temp = 0.0
 
 def record():
     global record_timer
-    history = {"time": "",
-               "temp": temp_sensor.temperature,
+    history = {"time": round(datetime.now(timezone.utc).timestamp()),
+               "temperature": temp_sensor.temperature,
                "humidity": temp_sensor.humidity,
                "pumpOn": False,
                "lampOn": False}
-    # history.time = int(time.perf_counter() - self.record_start_time)
     # TODO FbDB push history
-    record_timer = threading.Timer(interval, record)
+    record_interval = 15 if running else 300
+    record_timer = threading.Timer(record_interval, record)
     record_timer.start()
 
 
 def run_program(name):
-    global program
+    global program, running
     logger.info(f"run_program({name})")
     found = False
     for p in firebase_db.programs:
@@ -80,15 +82,17 @@ def run_program(name):
 
 
 def start_program():
-    global hold_timer, program_start_time
+    global hold_timer, program_start_time, running
+    running = True
     program_start_time = time.perf_counter()
     if hold_timer is not None:
         hold_timer.cancel()
+    firebase_db.status['startTime'] = round(datetime.now(timezone.utc).timestamp())
     run_step()
 
 
 def end_program():
-    global program_start_time, hold_timer, step_timer, program, step
+    global program_start_time, hold_timer, step_timer, program, step, running
     if hold_timer is not None:
         hold_timer.cancel()
     if step_timer is not None:
@@ -102,10 +106,12 @@ def end_program():
     firebase_db.status['step'] = -1
     firebase_db.status['program'] = "none"
     firebase_db.status['stepCnt'] = 0
+    firebase_db.status['startTime'] = 0
     firebase_db.pump_on(pump_relay.is_on)
     firebase_db.lamp_on(lamp_relay.is_on)
     firebase_db.save_status()
     firebase_db.set_running("none")
+    running = False
     logger.info(f"Program Ended")
 
 
