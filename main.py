@@ -27,6 +27,7 @@ vacuum_pin = 18
 
 max_temp_c = 72
 interval = 5
+status_update_cnt = 3
 
 program = {}
 step = {}

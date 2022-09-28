@@ -5,6 +5,7 @@ import logging
 from time import sleep
 import os
 from urllib import request, error
+from datetime import datetime, timezone
 
 """
 {
@@ -67,6 +68,19 @@ running = "none"
 callback = None
 timer = 0
 network_up = True
+history_cnt = 0
+
+
+def add_history(history):
+    global history_cnt
+    history_ref.push(history)
+    history_cnt += 1
+    snapshot = history_ref.order_by_key().limit_to_first(1).get()
+    # 4 hrs of history
+    history_max = round(datetime.now(timezone.utc).timestamp()) - 3600
+    for key, val in snapshot.items():
+        if val['time'] < history_max:
+            history_ref.child(key).delete()
 
 
 def internet_on():
