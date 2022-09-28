@@ -16,6 +16,7 @@ from datetime import datetime, timezone
         "pumpOn": false, 
         "lampOn": false, 
         "program": "none", 
+        "startTime": 0,
         "step": 0, 
         "stepCnt": 0
     }, 
@@ -62,12 +63,18 @@ running_stream = None
 programs_stream = None
 
 status = status_ref.get()
+db_status = status
 programs = programs_ref.get()
 running = "none"
 
 callback = None
 timer = 0
 network_up = True
+
+temperature = 0.0
+humidity = 0.0
+lamp_on = False
+pump_on = False
 
 
 def add_history(history):
@@ -101,36 +108,32 @@ def save_status():
     status_ref.update(status)
 
 
-def temperature(t=-100):
-    if -100 < t != status['temperature']:
-        status['temperature'] = t
-    else:
-        t = status['temperature']
-    return t
+def get_temperature(t=-100):
+    global temperature
+    if t > 0:
+        temperature = t
+    return temperature
 
 
-def humidity(h=-1):
-    if -1 < h != status['humidity']:
-        status['humidity'] = h
-    else:
-        h = status['humidity']
-    return h
+def get_humidity(h=-1):
+    global humidity
+    if h > 0:
+        humidity = h
+    return humidity
 
 
-def lamp_on(is_on=None):
-    if is_on is not None and status["lampOn"] != is_on:
-        status["lampOn"] = is_on
-    else:
-        is_on = status["lampOn"]
-    return is_on
+def is_lamp_on(is_on=None):
+    global lamp_on
+    if is_on is not None:
+        lamp_on = is_on
+    return lamp_on
 
 
-def pump_on(is_on=None):
-    if is_on is not None and status["pumpOn"] != is_on:
-        status["pumpOn"] = is_on
-    else:
-        is_on = status["pumpOn"]
-    return is_on
+def is_pump_on(is_on=None):
+    global pump_on
+    if is_on is not None:
+        pump_on = is_on
+    return pump_on
 
 
 def programs_listener(event):

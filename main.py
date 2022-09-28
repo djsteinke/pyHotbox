@@ -50,10 +50,10 @@ last_temp = 0.0
 def record():
     global record_timer
     history = {"time": round(datetime.now(timezone.utc).timestamp()),
-               "temperature": temp_sensor.temperature,
-               "humidity": temp_sensor.humidity,
-               "pumpOn": False,
-               "lampOn": False}
+               "temperature": firebase_db.get_temperature(),
+               "humidity": firebase_db.get_humidity(),
+               "pumpOn": firebase_db.is_pump_on(),
+               "lampOn": firebase_db.is_lamp_on()}
     # TODO FbDB push history
     firebase_db.add_history(history)
     record_interval = 15 if running else 300
@@ -90,10 +90,10 @@ def start_program():
     if hold_timer is not None:
         hold_timer.cancel()
     firebase_db.status['startTime'] = round(datetime.now(timezone.utc).timestamp())
+    run_step()
     if record_timer is not None:
         record_timer.cancel()
         record()
-    run_step()
 
 
 def end_program():
@@ -112,8 +112,8 @@ def end_program():
     firebase_db.status['program'] = "none"
     firebase_db.status['stepCnt'] = 0
     firebase_db.status['startTime'] = 0
-    firebase_db.pump_on(pump_relay.is_on)
-    firebase_db.lamp_on(lamp_relay.is_on)
+    firebase_db.is_pump_on(pump_relay.is_on)
+    firebase_db.is_lamp_on(lamp_relay.is_on)
     firebase_db.save_status()
     firebase_db.set_running("none")
     running = False
@@ -138,7 +138,7 @@ def run_step():
             pump_relay.run_time = t
             if not pump_relay.is_on:
                 pump_relay.on()
-        firebase_db.pump_on(pump_relay.is_on)
+        firebase_db.is_pump_on(pump_relay.is_on)
         firebase_db.save_status()
     else:
         end_program()
@@ -159,8 +159,8 @@ def hold_step():
         logger.error(f'EMERGENCY STOP PROGRAM. 5 min temp change {temp_change} deg C.')
         end_program()
         return
-    firebase_db.temperature(t[0])
-    firebase_db.humidity(t[1])
+    firebase_db.get_temperature(t[0])
+    firebase_db.get_humidity(t[1])
     if step["setTemp"] > 0:
         t_h = step["setTemp"] + 1.0
         t_l = step["setTemp"] - 1.0
@@ -172,7 +172,7 @@ def hold_step():
                 lamp_relay.force_off()
             elif temp < t_l and not lamp_relay.is_on:
                 lamp_relay.on()
-        firebase_db.lamp_on(lamp_relay.is_on)
+        firebase_db.is_lamp_on(lamp_relay.is_on)
     status_update_cnt += 1
     if status_update_cnt >= 3:
         firebase_db.save_status()
