@@ -4,7 +4,7 @@ from firebase_admin.exceptions import FirebaseError
 import logging
 from time import sleep
 import os
-import threading
+from urllib import request, error
 
 """
 {
@@ -57,12 +57,30 @@ status_ref = ref.child("status")
 programs_ref = ref.child("programs")
 running_ref = ref.child("running")
 history_ref = ref.child("history")
+running_stream = None
+programs_stream = None
 
 status = status_ref.get()
 programs = programs_ref.get()
 running = "none"
 
 callback = None
+timer = 0
+network_up = True
+
+
+def internet_on():
+    global network_up
+    while True:
+        try:
+            request.urlopen("http://google.com")
+            module_logger.debug('Network UP.')
+            return True
+        except error.URLError as e:
+            if network_up:
+                module_logger.error('Network DOWN. Reason: ' + e.reason)
+            network_up = False
+        sleep(5)
 
 
 def save_status():
@@ -148,6 +166,39 @@ def start_running_listener():
         module_logger.error('failed to start listener... trying again.')
         module_logger.error('FirebaseError: ' + str(e))
         sleep(5)
+
+
+def start_listeners():
+    global timer, running_stream, programs_stream
+    try:
+        running_stream = running_ref.listen(running_listener)
+        programs_stream = programs_ref.listen(programs_listener)
+        module_logger.debug('streams open...')
+    except FirebaseError as e:
+        module_logger.error('failed to start listeners... ' + e.cause)
+
+    timer = 100
+    while True:
+        if internet_on():
+            if timer == 0:
+                try:
+                    running_stream.close()
+                    programs_stream.close()
+                    module_logger.debug('streams closed...')
+                except:
+                    module_logger.debug('no streams to close...')
+                    pass
+                try:
+                    running_stream = running_ref.listen(running_listener)
+                    programs_stream = programs_ref.listen(programs_listener)
+                    module_logger.debug('streams open...')
+                    timer = 100
+                except FirebaseError as e:
+                    module_logger.error('failed to start listeners... ' + e.cause)
+                    timer = 0
+        else:
+            sleep(1)
+            timer -= 1 if timer > 0 else 0
 
 
 def get_programs():

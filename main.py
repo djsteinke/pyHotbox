@@ -182,7 +182,7 @@ if __name__ == '__main__':
     logger.debug("callback")
     firebase_db.callback = trigger_action
     logger.debug("Start firebase")
-    threading.Timer(0.1, firebase_db.start).start()
+    threading.Timer(0.1, firebase_db.start_listeners).start()
     logger.debug("Start recording")
     threading.Timer(0.1, record).start()
 
