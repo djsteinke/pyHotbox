@@ -61,12 +61,12 @@ def record():
     logger.debug("record: " + str(history))
     # TODO FbDB push history
     record_interval = 15
-    if not running:
-        record_interval = 300
+    #if not running:
+    #    record_interval = 300
     if firebase_db.get_humidity() != 0.0:
         firebase_db.add_history(history)
-    else:
-        record_interval = 15
+    #else:
+    #    record_interval = 15
     record_timer = threading.Timer(record_interval, record)
     record_timer.start()
 
