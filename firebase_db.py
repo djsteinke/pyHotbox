@@ -196,6 +196,7 @@ def start_listeners():
                 except FirebaseError as e:
                     module_logger.error('failed to start listeners... ' + e.cause)
                     timer = 0
+            sleep(15)
         else:
             sleep(1)
             timer -= 1 if timer > 0 else 0
