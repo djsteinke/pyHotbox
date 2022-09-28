@@ -87,8 +87,7 @@ def run_program(name):
     if found:
         if record_timer is not None:
             record_timer.cancel()
-        record_timer = threading.Timer(15, record)
-        run_step()
+        record()
         threading.Timer(0.1, start_program).start()
         logger.info(f"Program {name} Started")
         # TODO update status
