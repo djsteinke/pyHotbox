@@ -81,14 +81,14 @@ def add_history(history):
     history_ref.push(history)
     history_max = round(datetime.now(timezone.utc).timestamp()) - (3600*4)      # 4hrs of history
     #snapshot = history_ref.order_by_key().limit_to_last(1).get()
-    snapshot = history_ref.order_by_child('time').get()
+    snapshot = history_ref.order_by_key().limit_to_first(10).get()
     module_logger.debug("remove everything before: " + str(history_max))
     module_logger.debug(len(snapshot.items()))
     # 4 hrs of history
-    #for key, val in snapshot.items():
-    #    if val['time'] < history_max:
-    #        module_logger.debug("remove child... " + val)
-    #        history_ref.child(key).delete()
+    for key, val in snapshot.items():
+        if val['time'] < history_max:
+            module_logger.debug("remove child... " + str(val))
+            history_ref.child(key).delete()
 
 
 def internet_on():
