@@ -53,7 +53,7 @@ def record():
         t = [temp_sensor.temperature, temp_sensor.humidity]
         firebase_db.get_temperature(t[0])
         firebase_db.get_humidity(t[1])
-    history = {"time": round(datetime.now(timezone.utc).timestamp()),
+    history = {"time": round(datetime.utcnow().timestamp()),
                "temperature": firebase_db.get_temperature(),
                "humidity": firebase_db.get_humidity(),
                "pumpOn": firebase_db.is_pump_on(),
