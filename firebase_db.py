@@ -80,14 +80,14 @@ pump_on = False
 def add_history(history):
     history_ref.push(history)
     history_max = round(datetime.utcnow().timestamp()) - (3600*4)      # 4hrs of history
-    #snapshot = history_ref.order_by_key().limit_to_last(1).get()
+    # snapshot = history_ref.order_by_key().limit_to_last(1).get()
     snapshot = history_ref.order_by_key().limit_to_first(10).get()
-    module_logger.debug("remove everything before: " + str(history_max))
-    module_logger.debug(len(snapshot.items()))
+    # module_logger.debug("remove everything before: " + str(history_max))
+    # module_logger.debug(len(snapshot.items()))
     # 4 hrs of history
     for key, val in snapshot.items():
         if val['time'] < history_max:
-            module_logger.debug("remove child... " + str(val))
+            # module_logger.debug("remove child... " + str(val))
             history_ref.child(key).delete()
 
 
@@ -102,7 +102,7 @@ def internet_on():
             return network_up
         except error.URLError as e:
             if network_up:
-                module_logger.error('Network DOWN. Reason: ' + e.reason)
+                module_logger.error('Network DOWN. Reason: ' + str(e.reason))
             network_up = False
         sleep(15)
 
@@ -190,17 +190,41 @@ def start_running_listener():
 
 def start_listeners():
     global timer, running_stream, programs_stream
+    streams_running = False
     try:
         running_stream = running_ref.listen(running_listener)
         programs_stream = programs_ref.listen(programs_listener)
         module_logger.debug('streams open...')
+        streams_running = True
     except FirebaseError as e:
-        module_logger.error('failed to start listeners... ' + e.cause)
+        module_logger.error('failed to start listeners... ' + str(e))
 
     timer = 100
     while True:
         if internet_on():
             if timer == 0:
+                if streams_running:
+                    try:
+                        running_stream.close()
+                        programs_stream.close()
+                        module_logger.debug('streams closed...')
+                    except:
+                        module_logger.debug('no streams to close...')
+                        pass
+                    streams_running = False
+
+                try:
+                    running_stream = running_ref.listen(running_listener)
+                    programs_stream = programs_ref.listen(programs_listener)
+                    module_logger.debug('streams open...')
+                    streams_running = True
+                    timer = 100
+                except FirebaseError as e:
+                    module_logger.error('failed to start listeners... ' + str(e))
+                    timer = 0
+            sleep(15)
+        else:
+            if streams_running:
                 try:
                     running_stream.close()
                     programs_stream.close()
@@ -208,16 +232,7 @@ def start_listeners():
                 except:
                     module_logger.debug('no streams to close...')
                     pass
-                try:
-                    running_stream = running_ref.listen(running_listener)
-                    programs_stream = programs_ref.listen(programs_listener)
-                    module_logger.debug('streams open...')
-                    timer = 100
-                except FirebaseError as e:
-                    module_logger.error('failed to start listeners... ' + e.cause)
-                    timer = 0
-            sleep(15)
-        else:
+                streams_running = False
             sleep(1)
             timer -= 1 if timer > 0 else 0
 
