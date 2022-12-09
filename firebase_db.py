@@ -1,11 +1,10 @@
-from typing import Callable
 from firebase_admin import db, credentials, initialize_app
 from firebase_admin.exceptions import FirebaseError
 import logging
 from time import sleep
 import os
-from urllib import request, error
-from datetime import datetime, timezone
+from urllib import request
+from datetime import datetime
 
 """
 {
@@ -67,32 +66,47 @@ db_status = status
 programs = programs_ref.get()
 running = "none"
 
-callback = None
-timer = 0
 network_up = True
+reset_stream = True
+
+
+def placeholder(val):
+    return val
+
+
+callback = placeholder("placeholder")
+
 
 temperature = 0.0
 humidity = 0.0
 lamp_on = False
 pump_on = False
+histories = []
 
 
-def add_history(history):
-    history_ref.push(history)
-    history_max = round(datetime.utcnow().timestamp()) - (3600*4)      # 4hrs of history
-    # snapshot = history_ref.order_by_key().limit_to_last(1).get()
-    snapshot = history_ref.order_by_key().limit_to_first(10).get()
-    # module_logger.debug("remove everything before: " + str(history_max))
-    # module_logger.debug(len(snapshot.items()))
-    # 4 hrs of history
-    for key, val in snapshot.items():
-        if val['time'] < history_max:
-            # module_logger.debug("remove child... " + str(val))
-            history_ref.child(key).delete()
+def add_history(history_in):
+    histories.append(history_in)
+    if network_up:
+        for history in list(histories):
+            try:
+                history_ref.push(history)
+                history_max = round(datetime.utcnow().timestamp()) - (3600*4)      # 4hrs of history
+                # snapshot = history_ref.order_by_key().limit_to_last(1).get()
+                snapshot = history_ref.order_by_key().limit_to_first(10).get()
+                # module_logger.debug("remove everything before: " + str(history_max))
+                # module_logger.debug(len(snapshot.items()))
+                # 4 hrs of history
+                for key, val in snapshot.items():
+                    if val['time'] < history_max:
+                        # module_logger.debug("remove child... " + str(val))
+                        history_ref.child(key).delete()
+                histories.remove(history)
+            except Exception as e:
+                module_logger.debug("update history failed. try again.", str(e))
 
 
 def internet_on():
-    global network_up
+    global network_up, reset_stream
     while True:
         try:
             request.urlopen("http://google.com")
@@ -100,10 +114,11 @@ def internet_on():
                 module_logger.debug('Network UP.')
             network_up = True
             return network_up
-        except error.URLError as e:
+        except Exception as e:
             if network_up:
-                module_logger.error('Network DOWN. Reason: ' + str(e.reason))
+                module_logger.error('Network DOWN!!!', str(e))
             network_up = False
+            reset_stream = True
         sleep(15)
 
 
@@ -148,17 +163,6 @@ def programs_listener(event):
         module_logger.debug(programs)
 
 
-def start_programs_listener():
-    try:
-        module_logger.debug("Starting Programs Listener")
-        programs_ref.listen(programs_listener)
-    except FirebaseError as e:
-        module_logger.error('failed to start listener... trying again.')
-        module_logger.error('FirebaseError: ' + str(e))
-        sleep(5)
-        start_programs_listener()
-
-
 def set_running(val):
     global running
     if running != val:
@@ -178,69 +182,33 @@ def running_listener(event):
             module_logger.debug("RUNNING: " + str(running_ref.get()))
 
 
-def start_running_listener():
-    try:
-        module_logger.debug("Starting Running Listener")
-        running_ref.listen(running_listener)
-    except FirebaseError as e:
-        module_logger.error('failed to start listener... trying again.')
-        module_logger.error('FirebaseError: ' + str(e))
-        sleep(5)
-
-
 def start_listeners():
-    global timer, running_stream, programs_stream
-    streams_running = False
-    try:
-        running_stream = running_ref.listen(running_listener)
-        programs_stream = programs_ref.listen(programs_listener)
-        module_logger.debug('streams open...')
-        streams_running = True
-    except FirebaseError as e:
-        module_logger.error('failed to start listeners... ' + str(e))
-
-    timer = 100
+    global running_stream, programs_stream, reset_stream
     while True:
         if internet_on():
-            if timer == 0:
-                if streams_running:
-                    try:
-                        running_stream.close()
-                        programs_stream.close()
-                        module_logger.debug('streams closed...')
-                    except:
-                        module_logger.debug('no streams to close...')
-                        pass
-                    streams_running = False
+            if reset_stream:
+                try:
+                    programs_stream.close()
+                    module_logger.debug('programs_stream closed...')
+                except:
+                    module_logger.debug('programs_stream not running...')
+
+                try:
+                    running_stream.close()
+                    module_logger.debug('running_stream closed...')
+                except:
+                    module_logger.debug('running_stream not running...')
 
                 try:
                     running_stream = running_ref.listen(running_listener)
                     programs_stream = programs_ref.listen(programs_listener)
                     module_logger.debug('streams open...')
-                    streams_running = True
-                    timer = 100
-                except FirebaseError as e:
-                    module_logger.error('failed to start listeners... ' + str(e))
-                    timer = 0
-            sleep(15)
-        else:
-            if streams_running:
-                try:
-                    running_stream.close()
-                    programs_stream.close()
-                    module_logger.debug('streams closed...')
-                except:
-                    module_logger.debug('no streams to close...')
-                    pass
-                streams_running = False
-            sleep(1)
-            timer -= 1 if timer > 0 else 0
+                    reset_stream = False
+                except FirebaseError:
+                    module_logger.error('failed to start listeners... ')
+                    reset_stream = True
+        sleep(15)
 
 
 def get_programs():
     return programs
-
-
-def start():
-    start_programs_listener()
-    start_running_listener()
