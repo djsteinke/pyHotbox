@@ -1,3 +1,5 @@
+import threading
+
 from firebase_admin import db, credentials, initialize_app
 from firebase_admin.exceptions import FirebaseError
 import logging
@@ -123,7 +125,10 @@ def internet_on():
 
 
 def save_status():
-    status_ref.update(status)
+    if network_up:
+        status_ref.update(status)
+    else:
+        threading.Timer(180, save_status).start()
 
 
 def get_temperature(t=-100):
