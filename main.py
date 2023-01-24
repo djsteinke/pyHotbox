@@ -41,8 +41,8 @@ lamp_on_temp = 0
 program_start_time = 0.0
 step_start_time = 0.0
 record_start_time = 0.0
-lamp_relay = Relay(heat_pin)
-pump_relay = Relay(vacuum_pin)
+lamp_relay = Relay(heat_pin, True)
+pump_relay = Relay(vacuum_pin, True)
 callback = None
 last_temp = 0.0
 

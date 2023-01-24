@@ -8,7 +8,7 @@ GPIO.setwarnings(False)
 
 
 class Relay(object):
-    def __init__(self, pin):
+    def __init__(self, pin, on_high=None):
         self._on = False
         self._pin = pin
         self._run_time = 0
@@ -18,6 +18,7 @@ class Relay(object):
         self._gpio_off = GPIO.LOW
         self._start_time = 0
         self._off_timer = None
+        self._on_high = on_high
         self.setup_pin()
 
     def on(self):
@@ -54,7 +55,8 @@ class Relay(object):
     def setup_pin(self):
         if self._pin > 0:
             GPIO.setup(self._pin, GPIO.OUT)
-            if GPIO.input(self._pin) > 0:
+            if (self._on_high is not None and not self._on_high) \
+                    or (self._on_high is None and GPIO.input(self._pin) > 0):
                 self._gpio_on = GPIO.LOW
                 self._gpio_off = GPIO.HIGH
             GPIO.output(self._pin, self._gpio_off)
