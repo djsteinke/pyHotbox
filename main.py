@@ -9,7 +9,7 @@ from relay import Relay
 logger = logging.getLogger('main')
 logger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
-fh = logging.FileHandler('log.log')
+fh = logging.FileHandler('/home/pi/projects/pyHotbox/log.log')
 fh.setLevel(logging.DEBUG)
 # create console handler with a higher log level
 ch = logging.StreamHandler()
