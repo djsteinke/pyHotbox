@@ -24,6 +24,7 @@ logger.addHandler(ch)
 
 heat_pin = 16
 vacuum_pin = 18
+fan_pin = 22
 
 max_temp_c = 72
 interval = 5
@@ -43,6 +44,7 @@ step_start_time = 0.0
 record_start_time = 0.0
 lamp_relay = Relay(heat_pin, True)
 pump_relay = Relay(vacuum_pin, True)
+fan_relay = Relay(fan_pin, True)
 callback = None
 last_temp = 0.0
 
@@ -106,6 +108,7 @@ def start_program():
     if hold_timer is not None:
         hold_timer.cancel()
     firebase_db.status['startTime'] = round(datetime.now(timezone.utc).timestamp())
+    fan_relay.on()
     run_step()
 
 
@@ -115,6 +118,7 @@ def end_program():
         hold_timer.cancel()
     if step_timer is not None:
         step_timer.cancel()
+    fan_relay.off()
     program_start_time = 0
     firebase_db.status['step'] = -1
     program = {}
