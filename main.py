@@ -108,7 +108,6 @@ def start_program():
     if hold_timer is not None:
         hold_timer.cancel()
     firebase_db.status['startTime'] = round(datetime.now(timezone.utc).timestamp())
-    fan_relay.on()
     run_step()
 
 
@@ -118,13 +117,13 @@ def end_program():
         hold_timer.cancel()
     if step_timer is not None:
         step_timer.cancel()
-    fan_relay.off()
     program_start_time = 0
     firebase_db.status['step'] = -1
     program = {}
     step = {}
     lamp_relay.force_off()
     pump_relay.force_off()
+    fan_relay.force_off()
     firebase_db.status['step'] = -1
     firebase_db.status['program'] = "none"
     firebase_db.status['stepCnt'] = 0
@@ -155,6 +154,8 @@ def run_step():
             pump_relay.run_time = t
             if not pump_relay.is_on:
                 pump_relay.on()
+        fan_relay.run_time = t-10
+        fan_relay.on()
         firebase_db.is_pump_on(pump_relay.is_on)
         firebase_db.save_status()
     else:

@@ -1,3 +1,4 @@
+import logging
 import threading
 import time
 
@@ -6,9 +7,11 @@ import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 
+module_logger = logging.getLogger('main.temp_sensor')
+
 
 class Relay(object):
-    def __init__(self, pin, on_high=None):
+    def __init__(self, pin, on_high=None, name=None):
         self._on = False
         self._pin = pin
         self._run_time = 0
@@ -19,6 +22,7 @@ class Relay(object):
         self._start_time = 0
         self._off_timer = None
         self._on_high = on_high
+        self._name = name
         self.setup_pin()
 
     def on(self):
@@ -26,6 +30,7 @@ class Relay(object):
             if self._run_time == 0:
                 self._run_time = 1800
             self._on = True
+            self.log(f"on() {str(self._run_time)}")
             self._start_time = time.perf_counter()
             GPIO.output(self._pin, self._gpio_on)
             if self._off_timer is None:
@@ -37,11 +42,13 @@ class Relay(object):
             self._off_timer.cancel()
         self._run_time = 0
         self._wait = 0
+        self.log("force_off()")
         self.off()
 
     def off(self):
         GPIO.output(self._pin, self._gpio_off)
         self._on = False
+        self.log("off()")
         if self._callback is not None:
             timer = threading.Timer(self._wait, self._callback)
             timer.start()
@@ -59,7 +66,11 @@ class Relay(object):
                     or (self._on_high is None and GPIO.input(self._pin) > 0):
                 self._gpio_on = GPIO.LOW
                 self._gpio_off = GPIO.HIGH
+            self.log(f"setup_pin() pin({str(self._pin)}) gpio_on({str(self._gpio_on)})")
             GPIO.output(self._pin, self._gpio_off)
+
+    def log(self, msg):
+        module_logger.debug(f"{self._name} : {msg}")
 
     @property
     def pin(self):
