@@ -107,7 +107,7 @@ def start_program():
     program_start_time = time.perf_counter()
     if hold_timer is not None:
         hold_timer.cancel()
-    firebase_db.status['startTime'] = round(datetime.now(timezone.utc).timestamp())
+    firebase_db.status['startTime'] = round(datetime.utcnow().timestamp())
     run_step()
 
 
