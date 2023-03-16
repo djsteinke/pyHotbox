@@ -47,8 +47,9 @@ module_logger = logging.getLogger('main.firebase_db')
 databaseURL = "https://rn5notifications-default-rtdb.firebaseio.com/"
 appKey = "hotbox"
 
-key_dir = os.path.dirname(os.getcwd()) + "/firebaseKey.json"
+# key_dir = os.path.dirname(os.getcwd()) + "/firebaseKey.json"
 # key_dir = "C:\\MyData\\Program Files\\PyCharm\\rn5notificationsKey.json"
+key_dir = "/home/pi/firebaseKey.json"
 cred_obj = credentials.Certificate(key_dir)
 
 initialize_app(cred_obj, {
@@ -104,7 +105,7 @@ def add_history(history_in):
                         history_ref.child(key).delete()
                 histories.remove(history)
             except Exception as e:
-                module_logger.debug("update history failed. try again.", str(e))
+                module_logger.error("update history failed. try again.", str(e))
 
 
 def internet_on():
@@ -113,7 +114,7 @@ def internet_on():
         try:
             request.urlopen("http://google.com")
             if not network_up:
-                module_logger.debug('Network UP.')
+                module_logger.info('Network UP.')
             network_up = True
             return network_up
         except:
@@ -161,11 +162,10 @@ def is_pump_on(is_on=None):
 
 def programs_listener(event):
     global programs
-    module_logger.debug('programs firebase listener...')
+    # module_logger.debug('programs firebase listener...')
     if event.data:
         programs = programs_ref.get()
-        module_logger.debug("PROGRAMS: ")
-        module_logger.debug(programs)
+        module_logger.debug("PROGRAMS: ", programs)
 
 
 def set_running(val):
@@ -177,14 +177,14 @@ def set_running(val):
 
 def running_listener(event):
     global running
-    module_logger.debug('running firebase listener...')
+    # module_logger.debug('running firebase listener...')
     if event.data:
         new_running = running_ref.get()
         if running != new_running:
             running = new_running
             if callback is not None:
                 callback(running)
-            module_logger.debug("RUNNING: " + str(running_ref.get()))
+            module_logger.info("RUNNING: " + str(running_ref.get()))
 
 
 def start_listeners():
