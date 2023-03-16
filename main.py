@@ -199,6 +199,12 @@ def hold_step():
     hold_timer.start()
 
 
+def runaway_heat():
+    if temp_sensor.temperature > max_temp_c:
+        logger.error(f'EMERGENCY STOP HEAT.  Error reading sensor.')
+        lamp_relay.force_off()
+
+
 def trigger_action(action):
     if action == "none":
         logger.debug("program stopped")
