@@ -203,6 +203,7 @@ def runaway_heat():
     if temp_sensor.temperature > max_temp_c:
         logger.error(f'EMERGENCY STOP HEAT.  Error reading sensor.')
         lamp_relay.force_off()
+    threading.Timer(60, runaway_heat).start()
 
 
 def trigger_action(action):
@@ -219,9 +220,11 @@ if __name__ == '__main__':
     temp_sensor.start()
     logger.debug("callback")
     firebase_db.callback = trigger_action
-    logger.debug("Start firebase")
+    logger.debug("Start firebase_db")
     threading.Timer(0.1, firebase_db.start_listeners).start()
-    logger.debug("Start recording")
+    logger.debug("Start record()")
     threading.Timer(1, record).start()
+    logger.debug("Start runaway_heat()")
+    threading.Timer(60, runaway_heat).start()
 
 

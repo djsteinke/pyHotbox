@@ -116,9 +116,9 @@ def internet_on():
                 module_logger.debug('Network UP.')
             network_up = True
             return network_up
-        except Exception as e:
+        except:
             if network_up:
-                module_logger.error('Network DOWN!!!', str(e))
+                module_logger.error('Network DOWN!!!')
             network_up = False
             reset_stream = True
         sleep(15)
@@ -131,14 +131,14 @@ def save_status():
         threading.Timer(180, save_status).start()
 
 
-def get_temperature(t=-100):
+def get_temperature(t=100):
     global temperature
     if t > 0:
         temperature = t
     return temperature
 
 
-def get_humidity(h=-1):
+def get_humidity(h=0):
     global humidity
     if h > 0:
         humidity = h
