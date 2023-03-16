@@ -132,7 +132,7 @@ def save_status():
         threading.Timer(180, save_status).start()
 
 
-def get_temperature(t=100):
+def get_temperature(t=0):
     global temperature
     if t > 0:
         temperature = t

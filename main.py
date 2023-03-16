@@ -215,16 +215,16 @@ def trigger_action(action):
 
 
 if __name__ == '__main__':
-    logger.debug("Start Application")
-    logger.debug("Start temp_sensor")
+    logger.info("Start Application")
+    logger.info("Start temp_sensor")
     temp_sensor.start()
-    logger.debug("callback")
+    logger.info("callback")
     firebase_db.callback = trigger_action
-    logger.debug("Start firebase_db")
+    logger.info("Start firebase_db")
     threading.Timer(0.1, firebase_db.start_listeners).start()
-    logger.debug("Start record()")
+    logger.info("Start record()")
     threading.Timer(1, record).start()
-    logger.debug("Start runaway_heat()")
+    logger.info("Start runaway_heat()")
     threading.Timer(60, runaway_heat).start()
 
 
