@@ -24,7 +24,7 @@ logger.addHandler(ch)
 
 heat_pin = 16
 vacuum_pin = 18
-fan_pin = 22
+fan_pin = 12
 
 max_temp_c = 72
 interval = 5
@@ -55,7 +55,7 @@ def record():
         t = [temp_sensor.temperature, temp_sensor.humidity]
         firebase_db.get_temperature(t[0])
         firebase_db.get_humidity(t[1])
-    history = {"time": round(datetime.utcnow().timestamp()),
+    history = {"time": round(datetime.now(timezone.utc).timestamp()),
                "temperature": firebase_db.get_temperature(),
                "humidity": firebase_db.get_humidity(),
                "pumpOn": firebase_db.is_pump_on(),
@@ -107,7 +107,7 @@ def start_program():
     program_start_time = time.perf_counter()
     if hold_timer is not None:
         hold_timer.cancel()
-    firebase_db.status['startTime'] = round(datetime.utcnow().timestamp())
+    firebase_db.status['startTime'] = round(datetime.now(timezone.utc).timestamp())
     run_step()
 
 
@@ -218,7 +218,6 @@ if __name__ == '__main__':
     logger.info("Start Application")
     logger.info("Start temp_sensor")
     temp_sensor.start()
-    logger.info("callback")
     firebase_db.callback = trigger_action
     logger.info("Start firebase_db")
     threading.Timer(0.1, firebase_db.start_listeners).start()
