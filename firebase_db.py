@@ -42,7 +42,7 @@ from datetime import datetime, timezone
 }
 """
 
-module_logger = logging.getLogger('main.firebase_db')
+module_logger = logging.getLogger('firebase_db')
 
 databaseURL = "https://rn5notifications-default-rtdb.firebaseio.com/"
 appKey = "hotbox"
@@ -108,21 +108,20 @@ def add_history(history_in):
                 module_logger.error("update history failed. try again.", str(e))
 
 
-def internet_on():
+def network_check():
     global network_up, reset_stream
-    while True:
-        try:
-            request.urlopen("http://google.com")
-            if not network_up:
-                module_logger.info('Network UP.')
-            network_up = True
-            return network_up
-        except:
-            if network_up:
-                module_logger.error('Network DOWN!!!')
-            network_up = False
-            reset_stream = True
-        sleep(15)
+    try:
+        request.urlopen("http://google.com")
+        if not network_up:
+            module_logger.info('Network UP.')
+        network_up = True
+        return network_up
+    except:
+        if network_up:
+            module_logger.error('Network DOWN!!!')
+        network_up = False
+        reset_stream = True
+    return network_up
 
 
 def save_status():
@@ -190,7 +189,7 @@ def running_listener(event):
 def start_listeners():
     global running_stream, programs_stream, reset_stream
     while True:
-        if internet_on():
+        if network_check():
             if reset_stream:
                 try:
                     programs_stream.close()

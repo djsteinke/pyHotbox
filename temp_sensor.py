@@ -13,7 +13,7 @@ refresh_rate = 5
 
 timer = None
 
-module_logger = logging.getLogger('main.temp_sensor')
+module_logger = logging.getLogger('temp_sensor')
 
 
 def check_temp():
