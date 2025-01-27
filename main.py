@@ -47,6 +47,7 @@ pump_relay = Relay(vacuum_pin, True)
 fan_relay = Relay(fan_pin, True)
 callback = None
 last_temp = 0.0
+emergency_stop_triggered = False
 
 
 def record():
@@ -163,7 +164,7 @@ def run_step():
 
 
 def hold_step():
-    global lamp_on_temp, lamp_on_time, hold_timer, status_update_cnt
+    global lamp_on_temp, lamp_on_time, hold_timer, status_update_cnt, emergency_stop_triggered
     t = [temp_sensor.temperature, temp_sensor.humidity]
     if lamp_relay.is_on:
         if lamp_on_temp == 0:
@@ -174,9 +175,16 @@ def hold_step():
         lamp_on_temp = 0
     if lamp_on_time >= 300 and t[0] <= lamp_on_temp + 5:
         temp_change = round(t[0] - lamp_on_temp, 1)
-        logger.error(f'EMERGENCY STOP PROGRAM. 5 min temp change {temp_change} deg C.')
-        end_program()
-        return
+        if emergency_stop_triggered:
+            logger.error(f'EMERGENCY STOP PROGRAM. 5 min temp change {temp_change} deg C.')
+            emergency_stop_triggered = False
+            end_program()
+            return
+        else:
+            logger.warning(f'HOLD STEP: FIRST WARNING: 5 min temp change {temp_change} deg C.')
+            emergency_stop_triggered = True
+            lamp_on_time = 0
+            lamp_on_temp = 0
     firebase_db.get_temperature(t[0])
     firebase_db.get_humidity(t[1])
     if step["setTemp"] > 0:
